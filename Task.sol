@@ -76,6 +76,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         _mint(master, 1000000e18);
 
         _approve(_msgSender(), ABC, _totalSupply);
+        _approve(_msgSender(), delegateAddr1, _totalSupply);
         _approve(_msgSender(), delegateAddr2, _totalSupply);
     }
 
