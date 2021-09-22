@@ -1,3 +1,4 @@
+
 pragma solidity ^0.8.0;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeMath.sol";
@@ -8,39 +9,43 @@ contract a {
 using SafeMath for uint256;
 
 
-function trimStringMirroringChars(string [] calldata data) public returns (string memory) {
-   
-   string memory conData;
-   for (uint256 i =0; i< data.length; i=i+1){
-     
-        bytes memory b = bytes(data[i]);
-        bytes memory c = bytes(conData);
-        // bytes memory d = bytes(data[i+1]);
+    function trimStringMirroringChars(string [] calldata data) public view returns (string memory) {
+       
+       string memory conData;
+       for (uint256 i =0; i< data.length; i=i+1){
+         
+            bytes memory b = bytes(data[i]);
+            bytes memory c = bytes(conData);
+    
+             uint256 l =  (b.length < c.length) ? b.length : c.length; // l is the smaller length 
 
-        uint256 l =  (b.length < c.length) ? b.length : c.length; // l is the smaller length 
-        bytes memory m = (b.length < c.length) ? b : c;   // m is the string of smaller length 
-        bytes memory n = (b.length > c.length) ? b : c; 
+    
+            for(uint256 j=0; j < l; j=j+1){
+                uint256 k = b.length;
+                uint256 o = c.length;
+                if(c[0]==b[k-1]) {
+                  
+                    c = emitString(c,1,o);
+                    b = emitString(b,0,(k-1));
+                }
+                else {
+                    break;
+                }
+            } 
+  
+            conData = string(abi.encodePacked(b, c));
+        }
 
-        for(uint256 j=0; j < l; j=j+1){
-            uint256 k = m.length;
-            if(n[j]==m[k-1]) {
-                // for(uint256 t = 0; i < n.length.sub(1); t=t+1) {
-                //     n[t] = n[t+1];
-                // }
-                delete n[0];
-                delete m[k.sub(1)];
-            }
-            else {
-                break;
-            }
-        } 
+       return conData;
+        }
         
-        conData = string(abi.encodePacked(data[i], conData));
-    }
-    //delete bytes(conData)[6]; 
-   //return bytes(conData)[2];
-   return conData;
-    }
+    function emitString(bytes memory str, uint startIndex, uint endIndex) internal pure returns (bytes memory) {
+        bytes memory result = new bytes(endIndex-startIndex);
+        for(uint i = startIndex; i < endIndex; i++) {
+            result[i-startIndex] = str[i];
+        }
+        return result;
+  }
     
 }
 
@@ -64,115 +69,60 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     string private _name;
     string private _symbol;
 
-    /**
-     * @dev Sets the values for {name} and {symbol}.
-     *
-     * The default value of {decimals} is 18. To select a different value for
-     * {decimals} you should overload it.
-     *
-     * All two of these values are immutable: they can only be set once during
-     * construction.
-     */
-    constructor(address ABC, address delegateAddr1, address delegateAddr2) {
+ 
+    constructor(address ABC, address master, address delegateAddr1, address delegateAddr2) {
         _name = "ujjwal";
         _symbol = "UB";
-        _mint(_msgSender(), 1000000e18);
+        _mint(master, 1000000e18);
 
-        _approve(_msgSender(), delegateAddr1, _totalSupply);
+        _approve(_msgSender(), ABC, _totalSupply);
         _approve(_msgSender(), delegateAddr2, _totalSupply);
     }
 
-    /**
-     * @dev Returns the name of the token.
-     */
+
     function name() public view virtual override returns (string memory) {
         return _name;
     }
 
-    /**
-     * @dev Returns the symbol of the token, usually a shorter version of the
-     * name.
-     */
+
+   
     function symbol() public view virtual override returns (string memory) {
         return _symbol;
     }
 
-    /**
-     * @dev Returns the number of decimals used to get its user representation.
-     * For example, if `decimals` equals `2`, a balance of `505` tokens should
-     * be displayed to a user as `5.05` (`505 / 10 ** 2`).
-     *
-     * Tokens usually opt for a value of 18, imitating the relationship between
-     * Ether and Wei. This is the value {ERC20} uses, unless this function is
-     * overridden;
-     *
-     * NOTE: This information is only used for _display_ purposes: it in
-     * no way affects any of the arithmetic of the contract, including
-     * {IERC20-balanceOf} and {IERC20-transfer}.
-     */
+
     function decimals() public view virtual override returns (uint8) {
         return 18;
     }
 
-    /**
-     * @dev See {IERC20-totalSupply}.
-     */
+   
     function totalSupply() public view virtual override returns (uint256) {
         return _totalSupply;
     }
 
-    /**
-     * @dev See {IERC20-balanceOf}.
-     */
+  
     function balanceOf(address account) public view virtual override returns (uint256) {
         return _balances[account];
     }
 
-    /**
-     * @dev See {IERC20-transfer}.
-     *
-     * Requirements:
-     *
-     * - `recipient` cannot be the zero address.
-     * - the caller must have a balance of at least `amount`.
-     */
+    
     function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
         _transfer(_msgSender(), recipient, amount);
         return true;
     }
 
-    /**
-     * @dev See {IERC20-allowance}.
-     */
+ 
     function allowance(address owner, address spender) public view virtual override returns (uint256) {
         return _allowances[owner][spender];
     }
 
-    /**
-     * @dev See {IERC20-approve}.
-     *
-     * Requirements:
-     *
-     * - `spender` cannot be the zero address.
-     */
+   
     function approve(address spender, uint256 amount) public virtual override returns (bool) {
         _approve(_msgSender(), spender, amount);
         return true;
     }
 
-    /**
-     * @dev See {IERC20-transferFrom}.
-     *
-     * Emits an {Approval} event indicating the updated allowance. This is not
-     * required by the EIP. See the note at the beginning of {ERC20}.
-     *
-     * Requirements:
-     *
-     * - `sender` and `recipient` cannot be the zero address.
-     * - `sender` must have a balance of at least `amount`.
-     * - the caller must have allowance for ``sender``'s tokens of at least
-     * `amount`.
-     */
+    
     function transferFrom(
         address sender,
         address recipient,
@@ -189,37 +139,12 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         return true;
     }
 
-    /**
-     * @dev Atomically increases the allowance granted to `spender` by the caller.
-     *
-     * This is an alternative to {approve} that can be used as a mitigation for
-     * problems described in {IERC20-approve}.
-     *
-     * Emits an {Approval} event indicating the updated allowance.
-     *
-     * Requirements:
-     *
-     * - `spender` cannot be the zero address.
-     */
+    
     function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
         _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
         return true;
     }
 
-    /**
-     * @dev Atomically decreases the allowance granted to `spender` by the caller.
-     *
-     * This is an alternative to {approve} that can be used as a mitigation for
-     * problems described in {IERC20-approve}.
-     *
-     * Emits an {Approval} event indicating the updated allowance.
-     *
-     * Requirements:
-     *
-     * - `spender` cannot be the zero address.
-     * - `spender` must have allowance for the caller of at least
-     * `subtractedValue`.
-     */
     function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
         uint256 currentAllowance = _allowances[_msgSender()][spender];
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
@@ -230,20 +155,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         return true;
     }
 
-    /**
-     * @dev Moves `amount` of tokens from `sender` to `recipient`.
-     *
-     * This internal function is equivalent to {transfer}, and can be used to
-     * e.g. implement automatic token fees, slashing mechanisms, etc.
-     *
-     * Emits a {Transfer} event.
-     *
-     * Requirements:
-     *
-     * - `sender` cannot be the zero address.
-     * - `recipient` cannot be the zero address.
-     * - `sender` must have a balance of at least `amount`.
-     */
+   
     function _transfer(
         address sender,
         address recipient,
@@ -266,15 +178,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         _afterTokenTransfer(sender, recipient, amount);
     }
 
-    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
-     * the total supply.
-     *
-     * Emits a {Transfer} event with `from` set to the zero address.
-     *
-     * Requirements:
-     *
-     * - `account` cannot be the zero address.
-     */
+
     function _mint(address account, uint256 amount) internal virtual {
         require(account != address(0), "ERC20: mint to the zero address");
 
@@ -287,17 +191,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         _afterTokenTransfer(address(0), account, amount);
     }
 
-    /**
-     * @dev Destroys `amount` tokens from `account`, reducing the
-     * total supply.
-     *
-     * Emits a {Transfer} event with `to` set to the zero address.
-     *
-     * Requirements:
-     *
-     * - `account` cannot be the zero address.
-     * - `account` must have at least `amount` tokens.
-     */
+   
     function _burn(address account, uint256 amount) internal virtual {
         require(account != address(0), "ERC20: burn from the zero address");
 
@@ -315,19 +209,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         _afterTokenTransfer(account, address(0), amount);
     }
 
-    /**
-     * @dev Sets `amount` as the allowance of `spender` over the `owner` s tokens.
-     *
-     * This internal function is equivalent to `approve`, and can be used to
-     * e.g. set automatic allowances for certain subsystems, etc.
-     *
-     * Emits an {Approval} event.
-     *
-     * Requirements:
-     *
-     * - `owner` cannot be the zero address.
-     * - `spender` cannot be the zero address.
-     */
+   
     function _approve(
         address owner,
         address spender,
@@ -340,40 +222,14 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         emit Approval(owner, spender, amount);
     }
 
-    /**
-     * @dev Hook that is called before any transfer of tokens. This includes
-     * minting and burning.
-     *
-     * Calling conditions:
-     *
-     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
-     * will be transferred to `to`.
-     * - when `from` is zero, `amount` tokens will be minted for `to`.
-     * - when `to` is zero, `amount` of ``from``'s tokens will be burned.
-     * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
+  
     function _beforeTokenTransfer(
         address from,
         address to,
         uint256 amount
     ) internal virtual {}
 
-    /**
-     * @dev Hook that is called after any transfer of tokens. This includes
-     * minting and burning.
-     *
-     * Calling conditions:
-     *
-     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
-     * has been transferred to `to`.
-     * - when `from` is zero, `amount` tokens have been minted for `to`.
-     * - when `to` is zero, `amount` of ``from``'s tokens have been burned.
-     * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
+ 
     function _afterTokenTransfer(
         address from,
         address to,
@@ -385,34 +241,31 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
  contract ABC is a{
     
-    address delegateAdd1;
-    address delegateAdd2;
+    address public delegateAdd1;
+    address public delegateAdd2;
     address public master;
     uint256 public supply = 1000000e18;
     uint256 public len;
-    
+    string public returnedvalue;
 
-    
-// master.delegatecall
-//     // function delegatecallSetN(address _e, uint _n) {
-//     // _e.delegatecall(bytes4(sha3("setN(uint256)")), _n); // D's storage is set, E is not modified 
-//     // }
-    
-//     function delegation(){
-        
-//     }
+    constructor(address _master, address _delegateAdd1, address _delegateAdd2){
+        master = _master;
+        delegateAdd2 = _delegateAdd2;
+        delegateAdd1 = _delegateAdd1;
+    }
+
     function distributeRewards(string[] calldata _strArray, address _deplyedAddressERC20) public {
        
-        len = bytes(a.trimStringMirroringChars(_strArray)).length;
+        returnedvalue = a.trimStringMirroringChars(_strArray);
+        len = bytes(returnedvalue).length;
         if (len <= 5 && len >= 0) {
-            IERC20(_deplyedAddressERC20).transferFrom(delegateAdd1, msg.sender, 100e18);
+            IERC20(_deplyedAddressERC20).transferFrom(master, msg.sender, 100e18);
         }
         else{
-            IERC20(_deplyedAddressERC20).transferFrom(delegateAdd2, msg.sender, 1000e18);
+            IERC20(_deplyedAddressERC20).transferFrom(master, msg.sender, 1000e18);
         }
     }
     
    
 }
-
 
